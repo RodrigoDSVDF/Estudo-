@@ -5,7 +5,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Carregar o dataset
-df = pd.read_csv("student_exam_scores.csv")
+# Linha 8 (Depois)
+df = pd.read_csv("student_exam_scores (1).csv")
+
 
 # --- Configurações da Página --- #
 st.set_page_config(page_title="Análise de Desempenho de Estudantes",
