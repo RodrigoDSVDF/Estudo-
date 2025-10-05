@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Carregar o dataset
-df = pd.read_csv("/home/ubuntu/upload/student_exam_scores(1).csv")
+df = pd.read_csv("student_exam_scores.csv")
 
 # --- Configurações da Página --- #
 st.set_page_config(page_title="Análise de Desempenho de Estudantes",
@@ -50,7 +50,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Título do Dashboard --- #
-st.markdown("<p class='main-header'>Dashboard de Análise de Desempenho de Estudantes</p>", unsafe_allow_html=True)
+st.markdown("<p class=\'main-header\'>Dashboard de Análise de Desempenho de Estudantes</p>", unsafe_allow_html=True)
 
 # --- Sidebar para Filtros (Exemplo) --- #
 st.sidebar.header("Filtros")
@@ -65,7 +65,7 @@ min_hours, max_hours = st.sidebar.slider(
 df_filtered = df[(df["hours_studied"] >= min_hours) & (df["hours_studied"] <= max_hours)]
 
 # --- Seção de Métricas Chave --- #
-st.markdown("<p class='subheader'>Métricas Chave</p>", unsafe_allow_html=True)
+st.markdown("<p class=\'subheader\'>Métricas Chave</p>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -76,12 +76,13 @@ with col3:
     st.metric(label="Média de Horas de Sono", value=f"{df_filtered["sleep_hours"].mean():.2f}")
 
 # --- Visualizações Interativas com Plotly --- #
-st.markdown("<p class='subheader'>Visualizações Interativas</p>", unsafe_allow_html=True)
+st.markdown("<p class=\'subheader\'>Visualizações Interativas</p>", unsafe_allow_html=True)
 
 # 1. Distribuição das Notas do Exame (Histograma)
 fig_hist = px.histogram(df_filtered, x="exam_score", nbins=20, title="Distribuição das Notas do Exame",
                         labels={"exam_score": "Nota do Exame"})
 st.plotly_chart(fig_hist, use_container_width=True)
+st.markdown("**Conclusão:** O histograma da nota do exame mostra uma distribuição aproximadamente normal, com a maioria dos estudantes concentrada em torno da média, e caudas mais finas em notas muito baixas ou muito altas.")
 
 # 2. Horas de Estudo vs Nota do Exame (Scatter Plot)
 fig_hours_exam = px.scatter(df_filtered, x="hours_studied", y="exam_score",
@@ -89,14 +90,16 @@ fig_hours_exam = px.scatter(df_filtered, x="hours_studied", y="exam_score",
                             labels={"hours_studied": "Horas de Estudo", "exam_score": "Nota do Exame"},
                             hover_data=["student_id", "sleep_hours", "attendance_percent", "previous_scores"])
 st.plotly_chart(fig_hours_exam, use_container_width=True)
+st.markdown("**Conclusão:** Este scatter plot revela uma **forte correlação positiva** entre as horas de estudo e a nota do exame. Estudantes que dedicam mais tempo aos estudos tendem a obter notas mais altas.")
 
 # 3. Matriz de Correlação (Heatmap)
-st.markdown("<p class='subheader'>Matriz de Correlação</p>", unsafe_allow_html=True)
+st.markdown("<p class=\'subheader\'>Matriz de Correlação</p>", unsafe_allow_html=True)
 correlation_matrix = df_filtered[["hours_studied", "sleep_hours", "attendance_percent", "previous_scores", "exam_score"]].corr()
 fig_corr = px.imshow(correlation_matrix, text_auto=True, aspect="auto",
                      title="Matriz de Correlação entre Variáveis",
                      color_continuous_scale="Viridis")
 st.plotly_chart(fig_corr, use_container_width=True)
+st.markdown("**Conclusão:** A matriz de correlação quantifica a força e a direção das relações lineares entre as variáveis. `hours_studied` tem a correlação mais forte com `exam_score` (0.777), seguido por `previous_scores` (0.431). `attendance_percent` e `sleep_hours` têm correlações positivas mais fracas.")
 
 # 4. Horas de Sono vs Nota do Exame (Scatter Plot)
 fig_sleep_exam = px.scatter(df_filtered, x="sleep_hours", y="exam_score",
@@ -104,6 +107,7 @@ fig_sleep_exam = px.scatter(df_filtered, x="sleep_hours", y="exam_score",
                             labels={"sleep_hours": "Horas de Sono", "exam_score": "Nota do Exame"},
                             hover_data=["student_id", "hours_studied", "attendance_percent", "previous_scores"])
 st.plotly_chart(fig_sleep_exam, use_container_width=True)
+st.markdown("**Conclusão:** Observa-se uma correlação positiva, embora mais fraca, entre as horas de sono e a nota do exame. Mais horas de sono parecem estar associadas a notas ligeiramente melhores, mas a relação não é tão linear ou pronunciada quanto a das horas de estudo.")
 
 # 5. Porcentagem de Presença vs Nota do Exame (Scatter Plot)
 fig_attendance_exam = px.scatter(df_filtered, x="attendance_percent", y="exam_score",
@@ -111,6 +115,7 @@ fig_attendance_exam = px.scatter(df_filtered, x="attendance_percent", y="exam_sc
                                  labels={"attendance_percent": "Porcentagem de Presença", "exam_score": "Nota do Exame"},
                                  hover_data=["student_id", "hours_studied", "sleep_hours", "previous_scores"])
 st.plotly_chart(fig_attendance_exam, use_container_width=True)
+st.markdown("**Conclusão:** Existe uma correlação positiva entre o percentual de presença e a nota do exame. Estudantes com maior frequência nas aulas tendem a ter notas mais elevadas, sugerindo a importância da participação em sala de aula.")
 
 # 6. Notas Anteriores vs Nota do Exame (Scatter Plot)
 fig_previous_exam = px.scatter(df_filtered, x="previous_scores", y="exam_score",
@@ -118,9 +123,10 @@ fig_previous_exam = px.scatter(df_filtered, x="previous_scores", y="exam_score",
                                labels={"previous_scores": "Notas Anteriores", "exam_score": "Nota do Exame"},
                                hover_data=["student_id", "hours_studied", "sleep_hours", "attendance_percent"])
 st.plotly_chart(fig_previous_exam, use_container_width=True)
+st.markdown("**Conclusão:** As notas anteriores dos estudantes mostram uma correlação positiva com a nota do exame atual. Isso indica que o desempenho passado é um bom preditor do desempenho futuro, refletindo a consistência acadêmica.")
 
 # --- Informações Adicionais (Opcional) --- #
-st.markdown("<p class='subheader'>Informações Adicionais</p>", unsafe_allow_html=True)
+st.markdown("<p class=\'subheader\'>Informações Adicionais</p>", unsafe_allow_html=True)
 st.write("Este dashboard permite explorar a relação entre diversas variáveis e o desempenho dos estudantes em exames. Utilize os filtros na barra lateral para interagir com os dados.")
 
 # Exibir os dados filtrados (opcional)
