@@ -45,6 +45,16 @@ st.markdown("""
     background-color: #3498DB;
     color: white;
 }
+
+/* --- ALTERAÇÃO PARA MELHORAR VISUALIZAÇÃO NO CELULAR --- */
+@media (max-width: 768px) {
+    .main-header {
+        font-size: 1.8em;  /* Reduz o tamanho da fonte em telas menores */
+        margin-top: 20px;  /* Adiciona a margem no topo para "descer" o título */
+    }
+}
+/* --- FIM DA ALTERAÇÃO --- */
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -186,4 +196,3 @@ st.write("Este dashboard permite explorar visualmente a relação entre diversas
 
 if st.checkbox("Mostrar Dados Brutos Filtrados"):
     st.dataframe(df_filtered)
-
