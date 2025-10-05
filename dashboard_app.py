@@ -4,7 +4,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Carregar o dataset
-# --- MELHORIA: Corrigido o nome do arquivo conforme a conversa anterior ---
 df = pd.read_csv("student_exam_scores (1).csv") 
 
 # --- Configurações da Página --- #
@@ -77,83 +76,110 @@ with col3:
 # --- Visualizações Interativas com Plotly --- #
 st.markdown("<p class='subheader'>Visualizações Interativas</p>", unsafe_allow_html=True)
 
-# --- MELHORIA GERAL: Margens reduzidas em todos os gráficos para melhor visualização em mobile ---
-# Definindo uma margem padrão para os gráficos
 plot_margin = dict(l=20, r=20, t=40, b=20)
 
 # 1. Distribuição das Notas do Exame (Histograma)
 fig_hist = px.histogram(df_filtered, x="exam_score", nbins=20, title="Distribuição das Notas do Exame",
                         labels={"exam_score": "Nota do Exame"})
-fig_hist.update_layout(margin=plot_margin) # Aplicando a margem
+fig_hist.update_layout(margin=plot_margin)
 st.plotly_chart(fig_hist, use_container_width=True)
-st.markdown("**Conclusão:** O histograma da nota do exame mostra uma distribuição aproximadamente normal, com a maioria dos estudantes concentrada em torno da média.")
+
 
 # 2. Horas de Estudo vs Nota do Exame (Scatter Plot)
 fig_hours_exam = px.scatter(df_filtered, x="hours_studied", y="exam_score",
                             title="Horas de Estudo vs Nota do Exame",
                             labels={"hours_studied": "Horas de Estudo", "exam_score": "Nota do Exame"},
                             hover_data=["student_id", "sleep_hours", "attendance_percent", "previous_scores"])
-fig_hours_exam.update_layout(margin=plot_margin) # Aplicando a margem
+fig_hours_exam.update_layout(margin=plot_margin)
 st.plotly_chart(fig_hours_exam, use_container_width=True)
-st.markdown("**Conclusão:** Este scatter plot revela uma **forte correlação positiva** entre as horas de estudo e a nota do exame.")
+
 
 # 3. Matriz de Correlação (Heatmap)
 st.markdown("<p class='subheader'>Matriz de Correlação</p>", unsafe_allow_html=True)
 correlation_matrix = df_filtered[["hours_studied", "sleep_hours", "attendance_percent", "previous_scores", "exam_score"]].corr()
 
-# --- MELHORIA: Usando plotly.graph_objects para adicionar as linhas (traços) ---
 fig_corr = go.Figure(data=go.Heatmap(
     z=correlation_matrix.values,
     x=correlation_matrix.columns,
     y=correlation_matrix.index,
     colorscale="Viridis",
-    text=correlation_matrix.round(2).values, # Adiciona os valores numéricos
-    texttemplate="%{text}", # Formata a exibição do texto
+    text=correlation_matrix.round(2).values,
+    texttemplate="%{text}",
     hoverongaps=False))
 
 fig_corr.update_layout(
     title="Matriz de Correlação entre Variáveis",
-    margin=plot_margin, # Aplicando a margem
-    xaxis_tickangle=-45 # Melhora a leitura dos rótulos do eixo X
+    margin=plot_margin,
+    xaxis_tickangle=-45
 )
-# Adiciona as linhas/bordas ao redor das células
 fig_corr.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
 fig_corr.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
 
 st.plotly_chart(fig_corr, use_container_width=True)
-st.markdown("**Conclusão:** A matriz de correlação quantifica a força das relações. `hours_studied` tem a correlação mais forte com `exam_score` (0.777).")
 
 # 4. Horas de Sono vs Nota do Exame (Scatter Plot)
 fig_sleep_exam = px.scatter(df_filtered, x="sleep_hours", y="exam_score",
                             title="Horas de Sono vs Nota do Exame",
                             labels={"sleep_hours": "Horas de Sono", "exam_score": "Nota do Exame"},
                             hover_data=["student_id", "hours_studied", "attendance_percent", "previous_scores"])
-fig_sleep_exam.update_layout(margin=plot_margin) # Aplicando a margem
+fig_sleep_exam.update_layout(margin=plot_margin)
 st.plotly_chart(fig_sleep_exam, use_container_width=True)
-st.markdown("**Conclusão:** Observa-se uma correlação positiva, embora mais fraca, entre as horas de sono e a nota do exame.")
+
 
 # 5. Porcentagem de Presença vs Nota do Exame (Scatter Plot)
 fig_attendance_exam = px.scatter(df_filtered, x="attendance_percent", y="exam_score",
                                  title="Porcentagem de Presença vs Nota do Exame",
                                  labels={"attendance_percent": "Porcentagem de Presença", "exam_score": "Nota do Exame"},
                                  hover_data=["student_id", "hours_studied", "sleep_hours", "previous_scores"])
-fig_attendance_exam.update_layout(margin=plot_margin) # Aplicando a margem
+fig_attendance_exam.update_layout(margin=plot_margin)
 st.plotly_chart(fig_attendance_exam, use_container_width=True)
-st.markdown("**Conclusão:** Existe uma correlação positiva entre o percentual de presença e a nota do exame.")
+
 
 # 6. Notas Anteriores vs Nota do Exame (Scatter Plot)
 fig_previous_exam = px.scatter(df_filtered, x="previous_scores", y="exam_score",
                                title="Notas Anteriores vs Nota do Exame",
                                labels={"previous_scores": "Notas Anteriores", "exam_score": "Nota do Exame"},
                                hover_data=["student_id", "hours_studied", "sleep_hours", "attendance_percent"])
-fig_previous_exam.update_layout(margin=plot_margin) # Aplicando a margem
+fig_previous_exam.update_layout(margin=plot_margin)
 st.plotly_chart(fig_previous_exam, use_container_width=True)
-st.markdown("**Conclusão:** As notas anteriores dos estudantes mostram uma correlação positiva com a nota do exame atual.")
+
+
+# --- NOVA SEÇÃO: CONCLUSÕES DO ESTUDO ---
+st.markdown("<p class='subheader'>Conclusões e Recomendações do Estudo</p>", unsafe_allow_html=True)
+
+st.info(
+    """
+    **Principal Conclusão:** O estudo estatístico confirma que as **horas de estudo** são, de longe, o fator mais impactante na nota do exame, com uma correlação de **0.777**.
+    O modelo de regressão linear demonstrou que as variáveis analisadas (horas de estudo, sono, presença e notas anteriores) explicam **84.1%** da variação nas notas dos exames, indicando um alto poder preditivo.
+    """,
+    icon="💡"
+)
+
+st.markdown("#### Recomendações Principais:")
+    
+col1, col2 = st.columns(2)
+    
+with col1:
+    st.markdown(
+        """
+        - **📈 Incentivar o Estudo Consistente:** Para cada hora adicional de estudo, a nota do exame tende a aumentar em 1.56 pontos. Promover hábitos de estudo regulares é a intervenção mais eficaz.
+        - **🧑‍🏫 Promover a Frequência:** A presença em aula é um fator importante. Cada ponto percentual a mais na presença está associado a um aumento de 0.11 pontos na nota.
+        """
+    )
+
+with col2:
+    st.markdown(
+        """
+        - **😴 Conscientizar sobre a Importância do Sono:** O sono adequado é um preditor significativo. Cada hora adicional de sono se relaciona com um aumento de 0.95 pontos na nota final.
+        - **📚 Acompanhar o Desempenho Anterior:** As notas passadas são um excelente indicador de resultados futuros e podem ser usadas para identificar estudantes que necessitam de suporte adicional.
+        """
+    )
+# --- FIM DA NOVA SEÇÃO ---
+
 
 # --- Informações Adicionais (Opcional) --- #
 st.markdown("<p class='subheader'>Informações Adicionais</p>", unsafe_allow_html=True)
-st.write("Este dashboard permite explorar a relação entre diversas variáveis e o desempenho dos estudantes em exames.")
+st.write("Este dashboard permite explorar visualmente a relação entre diversas variáveis e o desempenho dos estudantes. Utilize os filtros na barra lateral para interagir com os dados.")
 
 if st.checkbox("Mostrar Dados Brutos Filtrados"):
     st.dataframe(df_filtered)
-
