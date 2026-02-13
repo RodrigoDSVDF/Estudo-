@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS PERSONALIZADO (COM FUNDO ESCURO NA CONCLUSÃO) --- #
+# --- CSS PERSONALIZADO (FUNDO ESCURO NA CONCLUSÃO) --- #
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -42,17 +42,17 @@ st.markdown("""
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     
-    /* Conclusão dinâmica - AGORA COM FUNDO ESCURO */
+    /* Conclusão dinâmica - FUNDO ESCURO */
     .insight-box {
-        background-color: #0f172a;  /* Fundo azul-escuro quase preto */
+        background-color: #0f172a;
         border: 1px solid #334155;
         padding: 1.5rem;
         border-radius: 16px;
         border-left: 8px solid #3b82f6;
-        color: #f8fafc;  /* Texto claro */
+        color: #f8fafc;
     }
     .insight-box h4, .insight-box li, .insight-box strong {
-        color: #ffffff;  /* Garante que títulos e destaques fiquem brancos */
+        color: #ffffff;
     }
     .insight-box ul {
         color: #e2e8f0;
@@ -134,7 +134,7 @@ def train_regression(_df, feature, target):
     r2 = r2_score(y, y_pred)
     return model, r2
 
-# --- SIDEBAR: FILTROS AVANÇADOS --- #
+# --- SIDEBAR: FILTROS AVANÇADOS + GRÁFICO DE IMPORTÂNCIA --- #
 st.sidebar.header("🔍 **Filtros Inteligentes**")
 st.sidebar.markdown("Ajuste os controles para refinar a análise:")
 
@@ -185,6 +185,39 @@ df_filtered = df[
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"**👥 Alunos na seleção:** `{df_filtered.shape[0]}`")
 st.sidebar.markdown(f"**📊 Correlação (Estudo x Nota):** `{df_filtered['hours_studied'].corr(df_filtered['exam_score']):.3f}`")
+
+# --- GRÁFICO DE IMPORTÂNCIA DAS VARIÁVEIS (BARRAS LATERAIS) --- #
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Importância das Variáveis")
+st.sidebar.caption("Correlação absoluta com a nota do exame")
+
+features = ["hours_studied", "sleep_hours", "attendance_percent", "previous_scores"]
+corr_values = df_filtered[features].corrwith(df_filtered["exam_score"]).abs().sort_values(ascending=False)
+
+corr_df = pd.DataFrame({
+    "Variável": corr_values.index,
+    "Correlação (abs)": corr_values.values
+}).sort_values("Correlação (abs)", ascending=True)  # crescente para barra horizontal
+
+fig_corr_bar = px.bar(
+    corr_df,
+    x="Correlação (abs)",
+    y="Variável",
+    orientation='h',
+    title="",
+    labels={"Correlação (abs)": "|r|", "Variável": ""},
+    color="Correlação (abs)",
+    color_continuous_scale="Blues",
+    range_color=[0, 1]
+)
+fig_corr_bar.update_layout(
+    height=250,
+    margin=dict(l=0, r=0, t=0, b=0),
+    showlegend=False,
+    coloraxis_showscale=False,
+    xaxis=dict(range=[0, 1])
+)
+st.sidebar.plotly_chart(fig_corr_bar, use_container_width=True)
 
 # --- HEADER COM NARRATIVA --- #
 st.markdown("""
@@ -297,9 +330,10 @@ with tab2:
         """)
         st.info(f"Cada hora extra de estudo está associada a um aumento de **{slope:.2f} pontos** na nota, em média.")
         
-        # Boxplot por faixa de estudo
-        df_filtered['study_group'] = pd.cut(df_filtered['hours_studied'], bins=4, labels=['Muito baixo', 'Baixo', 'Médio', 'Alto'])
-        fig_box = px.box(df_filtered, x='study_group', y='exam_score', 
+        # Boxplot por faixa de estudo - usando cópia para não modificar df_filtered
+        df_box = df_filtered.copy()
+        df_box['study_group'] = pd.cut(df_box['hours_studied'], bins=4, labels=['Muito baixo', 'Baixo', 'Médio', 'Alto'])
+        fig_box = px.box(df_box, x='study_group', y='exam_score', 
                          title="Distribuição das notas por grupo de estudo",
                          color_discrete_sequence=['#3b82f6'])
         st.plotly_chart(fig_box, use_container_width=True)
@@ -348,7 +382,7 @@ with tab4:
     
     with col_sim1:
         target_score = st.slider("Nota alvo:", 30, 100, 75, step=5)
-        # Utiliza o modelo treinado com todos os dados (ou filtrados? Melhor com todos para robustez)
+        # Utiliza o modelo treinado com todos os dados (mais robusto)
         model_full, _ = train_regression(df, "hours_studied", "exam_score")
         hours_needed = (target_score - model_full.intercept_) / model_full.coef_[0]
         hours_needed = np.clip(hours_needed, df["hours_studied"].min(), df["hours_studied"].max())
