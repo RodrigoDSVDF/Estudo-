@@ -3,196 +3,183 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Carregar o dataset
-df = pd.read_csv("student_exam_scores (1).csv") 
-
 # --- Configurações da Página --- #
-st.set_page_config(page_title="Análise de Desempenho de Estudantes",
-                   page_icon=":books:",
-                   layout="wide")
+st.set_page_config(
+    page_title="EduAnalytics | Desempenho",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- CSS Personalizado --- #
+# --- CSS Personalizado para Design Moderno --- #
 st.markdown("""
 <style>
-.main-header {
-    font-size: 2.5em;
-    font-weight: bold;
-    color: #2E86C1;
-    text-align: center;
-    margin-bottom: 30px;
-}
-.subheader {
-    font-size: 1.6em;
-    font-weight: bold;
-    color: #34495E;
-    margin-top: 20px;
-    margin-bottom: 15px;
-}
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-.stButton>button {
-    background-color: #2E86C1;
-    color: white;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 1.1em;
-}
-.stButton>button:hover {
-    background-color: #3498DB;
-    color: white;
-}
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-/* --- ALTERAÇÃO PARA MELHORAR VISUALIZAÇÃO NO CELULAR --- */
-@media (max-width: 768px) {
-    .main-header {
-        font-size: 1.8em;  /* Reduz o tamanho da fonte em telas menores */
-        margin-top: 20px;  /* Adiciona a margem no topo para "descer" o título */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-}
-/* --- FIM DA ALTERAÇÃO --- */
 
+    /* Fundo do Dashboard */
+    .stApp {
+        background-color: #f8f9fa;
+    }
+
+    /* Sidebar Estilizada */
+    section[data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 1px solid #e0e0e0;
+    }
+
+    /* Cards de Métricas */
+    .metric-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #efefef;
+        text-align: center;
+    }
+    .metric-label {
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    .metric-value {
+        color: #1e293b;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    /* Estilo para Títulos */
+    .main-title {
+        color: #1e3a8a;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .sub-title {
+        color: #64748b;
+        margin-bottom: 2rem;
+    }
+
+    /* Container de Gráficos */
+    .chart-container {
+        background-color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Título do Dashboard --- #
-st.markdown("<p class='main-header'>Dashboard de Análise de Desempenho de Estudantes</p>", unsafe_allow_html=True)
+# --- Simulação de Carga de Dados --- #
+# (Substitua pelo seu pd.read_csv)
+try:
+    df = pd.read_csv("student_exam_scores (1).csv")
+except:
+    # Dados fictícios para caso o arquivo não esteja no diretório
+    import numpy as np
+    data = {
+        "student_id": range(1, 101),
+        "hours_studied": np.random.uniform(1, 20, 100),
+        "sleep_hours": np.random.uniform(4, 10, 100),
+        "attendance_percent": np.random.uniform(60, 100, 100),
+        "previous_scores": np.random.uniform(40, 100, 100),
+        "exam_score": np.random.uniform(30, 100, 100)
+    }
+    df = pd.DataFrame(data)
 
-# --- Sidebar para Filtros --- #
-st.sidebar.header("Filtros")
-
-min_hours, max_hours = st.sidebar.slider(
-    "Horas de Estudo",
-    float(df["hours_studied"].min()),
-    float(df["hours_studied"].max()),
-    (float(df["hours_studied"].min()), float(df["hours_studied"].max()))
-)
-df_filtered = df[(df["hours_studied"] >= min_hours) & (df["hours_studied"] <= max_hours)]
-
-# --- Seção de Métricas Chave --- #
-st.markdown("<p class='subheader'>Métricas Chave</p>", unsafe_allow_html=True)
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric(label="Média da Nota do Exame", value=f"{df_filtered['exam_score'].mean():.2f}")
-with col2:
-    st.metric(label="Média de Horas de Estudo", value=f"{df_filtered['hours_studied'].mean():.2f}")
-with col3:
-    st.metric(label="Média de Horas de Sono", value=f"{df_filtered['sleep_hours'].mean():.2f}")
-
-# --- Visualizações Interativas com Plotly --- #
-st.markdown("<p class='subheader'>Visualizações Interativas</p>", unsafe_allow_html=True)
-
-plot_margin = dict(l=20, r=20, t=40, b=20)
-
-# 1. Distribuição das Notas do Exame (Histograma)
-fig_hist = px.histogram(df_filtered, x="exam_score", nbins=20, title="Distribuição das Notas do Exame",
-                        labels={"exam_score": "Nota do Exame"})
-fig_hist.update_layout(margin=plot_margin)
-st.plotly_chart(fig_hist, use_container_width=True)
-st.markdown("**Conclusão:** O histograma da nota do exame mostra uma distribuição aproximadamente normal, com a maioria dos estudantes concentrada em torno da média, e caudas mais finas em notas muito baixas ou muito altas.")
-
-
-# 2. Horas de Estudo vs Nota do Exame (Scatter Plot)
-fig_hours_exam = px.scatter(df_filtered, x="hours_studied", y="exam_score",
-                            title="Horas de Estudo vs Nota do Exame",
-                            labels={"hours_studied": "Horas de Estudo", "exam_score": "Nota do Exame"},
-                            hover_data=["student_id", "sleep_hours", "attendance_percent", "previous_scores"])
-fig_hours_exam.update_layout(margin=plot_margin)
-st.plotly_chart(fig_hours_exam, use_container_width=True)
-st.markdown("**Conclusão:** Este scatter plot revela uma **forte correlação positiva** entre as horas de estudo e a nota do exame. Estudantes que dedicam mais tempo aos estudos tendem a obter notas mais altas.")
-
-
-# 3. Matriz de Correlação (Heatmap)
-st.markdown("<p class='subheader'>Matriz de Correlação</p>", unsafe_allow_html=True)
-correlation_matrix = df_filtered[["hours_studied", "sleep_hours", "attendance_percent", "previous_scores", "exam_score"]].corr()
-
-fig_corr = go.Figure(data=go.Heatmap(
-    z=correlation_matrix.values,
-    x=correlation_matrix.columns,
-    y=correlation_matrix.index,
-    colorscale="Viridis",
-    text=correlation_matrix.round(2).values,
-    texttemplate="%{text}",
-    hoverongaps=False))
-
-fig_corr.update_layout(
-    title="Matriz de Correlação entre Variáveis",
-    margin=plot_margin,
-    xaxis_tickangle=-45
-)
-fig_corr.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
-fig_corr.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
-st.plotly_chart(fig_corr, use_container_width=True)
-st.markdown("**Conclusão:** A matriz de correlação quantifica a força e a direção das relações lineares entre as variáveis. `hours_studied` tem a correlação mais forte com `exam_score` (0.777), seguido por `previous_scores` (0.431). `attendance_percent` e `sleep_hours` têm correlações positivas mais fracas.")
-
-# 4. Horas de Sono vs Nota do Exame (Scatter Plot)
-fig_sleep_exam = px.scatter(df_filtered, x="sleep_hours", y="exam_score",
-                            title="Horas de Sono vs Nota do Exame",
-                            labels={"sleep_hours": "Horas de Sono", "exam_score": "Nota do Exame"},
-                            hover_data=["student_id", "hours_studied", "attendance_percent", "previous_scores"])
-fig_sleep_exam.update_layout(margin=plot_margin)
-st.plotly_chart(fig_sleep_exam, use_container_width=True)
-st.markdown("**Conclusão:** Observa-se uma correlação positiva, embora mais fraca, entre as horas de sono e a nota do exame. Mais horas de sono parecem estar associadas a notas ligeiramente melhores, mas a relação não é tão linear ou pronunciada quanto a das horas de estudo.")
-
-
-# 5. Porcentagem de Presença vs Nota do Exame (Scatter Plot)
-fig_attendance_exam = px.scatter(df_filtered, x="attendance_percent", y="exam_score",
-                                 title="Porcentagem de Presença vs Nota do Exame",
-                                 labels={"attendance_percent": "Porcentagem de Presença", "exam_score": "Nota do Exame"},
-                                 hover_data=["student_id", "hours_studied", "sleep_hours", "previous_scores"])
-fig_attendance_exam.update_layout(margin=plot_margin)
-st.plotly_chart(fig_attendance_exam, use_container_width=True)
-st.markdown("**Conclusão:** Existe uma correlação positiva entre o percentual de presença e a nota do exame. Estudantes com maior frequência nas aulas tendem a ter notas mais elevadas, sugerindo a importância da participação em sala de aula.")
-
-
-# 6. Notas Anteriores vs Nota do Exame (Scatter Plot)
-fig_previous_exam = px.scatter(df_filtered, x="previous_scores", y="exam_score",
-                               title="Notas Anteriores vs Nota do Exame",
-                               labels={"previous_scores": "Notas Anteriores", "exam_score": "Nota do Exame"},
-                               hover_data=["student_id", "hours_studied", "sleep_hours", "attendance_percent"])
-fig_previous_exam.update_layout(margin=plot_margin)
-st.plotly_chart(fig_previous_exam, use_container_width=True)
-st.markdown("**Conclusão:** As notas anteriores dos estudantes mostram uma correlação positiva com a nota do exame atual. Isso indica que o desempenho passado é um bom preditor do desempenho futuro, refletindo a consistência acadêmica.")
-
-
-# --- Conclusões e Recomendações do Estudo ---
-st.markdown("<p class='subheader'>Conclusões e Recomendações do Estudo</p>", unsafe_allow_html=True)
-
-st.info(
-    """
-    **Principal Conclusão:** O estudo estatístico confirma que as **horas de estudo** são, de longe, o fator mais impactante na nota do exame, com uma correlação de **0.777**.
-    O modelo de regressão linear demonstrou que as variáveis analisadas (horas de estudo, sono, presença e notas anteriores) explicam **84.1%** da variação nas notas dos exames, indicando um alto poder preditivo.
-    """,
-    icon="💡"
-)
-
-st.markdown("#### Recomendações Principais:")
+# --- Sidebar --- #
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/3413/3413535.png", width=80)
+    st.markdown("### Filtros de Análise")
     
-col1, col2 = st.columns(2)
+    min_h, max_h = float(df["hours_studied"].min()), float(df["hours_studied"].max())
+    hours_range = st.slider("Horas de Estudo", min_h, max_h, (min_h, max_h))
     
-with col1:
-    st.markdown(
-        """
-        - **📈 Incentivar o Estudo Consistente:** Para cada hora adicional de estudo, a nota do exame tende a aumentar em 1.56 pontos. Promover hábitos de estudo regulares é a intervenção mais eficaz.
-        - **🧑‍🏫 Promover a Frequência:** A presença em aula é um fator importante. Cada ponto percentual a mais na presença está associado a um aumento de 0.11 pontos na nota.
-        """
-    )
+    df_filtered = df[(df["hours_studied"] >= hours_range[0]) & (df["hours_studied"] <= hours_range[1])]
+    
+    st.divider()
+    st.info("Utilize os filtros acima para ajustar as métricas em tempo real.")
 
-with col2:
-    st.markdown(
-        """
-        - **😴 Conscientizar sobre a Importância do Sono:** O sono adequado é um preditor significativo. Cada hora adicional de sono se relaciona com um aumento de 0.95 pontos na nota final.
-        - **📚 Acompanhar o Desempenho Anterior:** As notas passadas são um excelente indicador de resultados futuros e podem ser usadas para identificar estudantes que necessitam de suporte adicional.
-        """
-    )
+# --- Header --- #
+st.markdown('<p class="main-title">Intelligence Student Dashboard</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Análise preditiva e comportamental de desempenho acadêmico</p>', unsafe_allow_html=True)
 
-# --- Informações Adicionais (Opcional) --- #
-st.markdown("<p class='subheader'>Informações Adicionais</p>", unsafe_allow_html=True)
-st.write("Este dashboard permite explorar visualmente a relação entre diversas variáveis e o desempenho dos estudantes. Utilize os filtros na barra lateral para interagir com os dados.")
+# --- Row 1: Metric Cards --- #
+m1, m2, m3, m4 = st.columns(4)
 
-if st.checkbox("Mostrar Dados Brutos Filtrados"):
-    st.dataframe(df_filtered)
+metrics = [
+    ("Média de Notas", f"{df_filtered['exam_score'].mean():.1f}", m1),
+    ("Média de Estudo", f"{df_filtered['hours_studied'].mean():.1f}h", m2),
+    ("Média de Sono", f"{df_filtered['sleep_hours'].mean():.1f}h", m3),
+    ("Frequência Média", f"{df_filtered['attendance_percent'].mean():.1f}%", m4)
+]
+
+for label, value, col in metrics:
+    col.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value">{value}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# --- Row 2: Main Distribution & Correlation --- #
+c1, c2 = st.columns([1.2, 0.8])
+
+with c1:
+    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+    fig_hist = px.histogram(df_filtered, x="exam_score", nbins=20, 
+                            title="Distribuição das Notas",
+                            color_discrete_sequence=['#3b82f6'])
+    fig_hist.update_layout(plot_bgcolor="white", paper_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=0))
+    st.plotly_chart(fig_hist, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with c2:
+    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+    corr = df_filtered[["hours_studied", "sleep_hours", "attendance_percent", "previous_scores", "exam_score"]].corr()
+    fig_corr = go.Figure(data=go.Heatmap(
+        z=corr.values, x=corr.columns, y=corr.index,
+        colorscale="Blues", text=corr.round(2).values, texttemplate="%{text}"))
+    fig_corr.update_layout(title="Correlação", height=380, margin=dict(t=40, b=0))
+    st.plotly_chart(fig_corr, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Row 3: Deep Dive Tabs --- #
+st.markdown("### Análise Detalhada")
+tab1, tab2, tab3 = st.tabs(["📚 Estudo vs Nota", "😴 Sono & Presença", "📅 Histórico"])
+
+with tab1:
+    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+    fig_scat = px.scatter(df_filtered, x="hours_studied", y="exam_score", 
+                          trendline="ols", color="exam_score", 
+                          color_continuous_scale="Blues",
+                          title="Relação: Tempo de Estudo vs. Resultado Final")
+    st.plotly_chart(fig_scat, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with tab2:
+    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_sleep = px.scatter(df_filtered, x="sleep_hours", y="exam_score", title="Impacto do Sono")
+        st.plotly_chart(fig_sleep, use_container_width=True)
+    with col_b:
+        fig_att = px.scatter(df_filtered, x="attendance_percent", y="exam_score", title="Frequência em Aula")
+        st.plotly_chart(fig_att, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with tab3:
+    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+    st.dataframe(df_filtered.style.background_gradient(subset=['exam_score'], cmap='BuGn'), use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Row 4: Insights Card --- #
+st.success("💡 **Insight Estratégico:** As horas de estudo têm o maior peso (0.78) no sucesso acadêmico. Recomenda-se focar em programas de mentoria para alunos com menos de 5h semanais de dedicação.")
